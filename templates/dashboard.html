@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!--responsiveness-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+
+    <!--stylesheet link unchanged -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styleSheet.css') }}">
+</head>
+
+<body>
+    <h1>WeatherSphere</h1>
+
+    <!--responsive form wrapper -->
+    <form method="get" action="/" class="form-container">
+        <label>Enter City:</label>
+        <!--Enter first city-->
+        <input type="text" name="city" placeholder="e.g. London"
+               {% if city and city != 'None' %}value="{{ city }}"{% endif %}>
+        <!--Enter second city-->
+        <label>Compare with another City:</label>
+        <input type="text" name="city2" placeholder="e.g. Paris"
+               {% if city2 and city2 != 'None' %}value="{{ city2 }}"{% endif %}>
+        <!--Click on button-->
+        <button id="a" type="submit">Get Your Weather Info Now!</button>
+    </form>
+
+    <!-- Current Weather -->
+    <section>
+        <h2>Current Weather in {{ city }}</h2>
+        {% if current.error %}
+            <p class="error">Error: {{ current.error }}</p>
+        {% else %}
+            <div>
+                <p>Description: {{ current.description }}
+                    <img src="{{ current.icon_url }}" alt="Current Icon" width="40" height="40">
+                </p>
+                <p>Temperature: {{ current.temp_c|round(2) }} °C / {{ current.temp_f|round(2) }} °F</p>
+                <p>Feels Like: {{ current.feels_c|round(2) }} °C / {{ current.feels_f|round(2) }} °F</p>
+                <p>Humidity: {{ current.humidity }}%</p>
+                <p>Wind Speed: {{ current.wind }} m/s</p>
+                <p>Sunrise: {{ current.sunrise }} | Sunset: {{ current.sunset }}</p>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- 5 Day Weather Forecast -->
+    <section class="forecast">
+        <h2>5-Day Forecast for {{ city }}</h2>
+        {% if forecast.error %}
+            <p class="error">Error: {{ forecast.error }}</p>
+        {% else %}
+            <div class="table-wrapper">
+                <table>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Description</th>
+                        <th>Temperature</th>
+                        <th>Icon</th>
+                    </tr>
+
+                    {% for item in forecast %}
+                    <tr>
+                        <td>{{ item.dt_txt }}</td>
+                        <td>{{ item.description }}</td>
+                        <td>{{ item.temp_c|round(2) }} °C</td>
+                        <td><img src="{{ item.icon_url }}" width="40" height="40"></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- Air Pollution -->
+    <section>
+        <h2>Air Pollution in {{ city }}</h2>
+        {% if pollution.error %}
+            <p class="error">Error: {{ pollution.error }}</p>
+        {% else %}
+            <p>Air Quality Index: {{ pollution.aqi }}</p>
+            <ul class="gases" style="list-style-type: none;">
+                {% for comp, value in pollution.components.items() %}
+                    <li>{{ pollutant_names.get(comp, comp) }}: {{ "%.2f"|format(value) }} {{ units }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </section>
+
+    <!-- Stats -->
+    <section>
+        <h2>Forecast Stats for {{ city }}</h2>
+        {% if stats.error %}
+            <p class="error">Error: {{ stats.error }}</p>
+        {% else %}
+            <p>Average Temperature: {{ stats.avg_temp|round(2) }} °C</p>
+            <p>Average Humidity: {{ stats.avg_humidity|round(2) }}%</p>
+        {% endif %}
+    </section>
+
+    <!-- Compare Cities -->
+    <section>
+        <h2>Compare Cities</h2>
+        {% if comparison %}
+            {% if comparison.city1.error or comparison.city2.error %}
+                <p class="error">Error comparing cities. Please check names.</p>
+            {% else %}
+                <h3>{{ comparison.city1.city }} vs {{ comparison.city2.city }}</h3>
+                <p>{{ comparison.city1.city }}: {{ comparison.city1.temp_c|round(2) }} °C, {{ comparison.city1.description }}</p>
+                <p>{{ comparison.city2.city }}: {{ comparison.city2.temp_c|round(2) }} °C, {{ comparison.city2.description }}</p>
+            {% endif %}
+        {% else %}
+            <p>Enter a second city above to compare.</p>
+        {% endif %}
+    </section>
+
+</body>
+</html>
